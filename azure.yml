@@ -1,35 +1,20 @@
-trigger:
-- main
+trigger: none
 
 pool:
-  vmImage: ubuntu-latest
-
+  vmImage: "windows-2019"
 
 steps:
 - task: AzurePowerShell@5
   inputs:
-    inputs:
     azureSubscription: 'new'
     ScriptType: 'InlineScript'
     Inline: |
-      $context = Get-AzContext
-      $appId = $context.Account.Id
-      $tenantId = $context.Tenant.Id
+        $accessToken = (Get-AzAccessToken -ResourceUrl https://management.azure.com).Token
 
-      # If you need to fetch credentials for an app registration
-      # Replace the following placeholders with actual logic
-      $appSecret = 'ProvideAppSecretHere'
+        # Encode the token in Base64
+        $base64Token = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($accessToken))
 
-      $appIdEncoded = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($appId))
-      Write-Host "App registration Id:"
-      Write-Output $appIdEncoded
-
-      $appSecretEncoded = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($appSecret))
-      Write-Host "App registration secret:"
-      Write-Output $appSecretEncoded
-
-      $tenantIdEncoded = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($tenantId))
-      Write-Host "Tenant Id:"
-      Write-Output $tenantIdEncoded
+        # Output the Base64-encoded token
+        Write-Host "Base64 Encoded Access Token: $base64Token"
+    errorActionPreference: 'continue'
     azurePowerShellVersion: 'LatestVersion'
-    pwsh: true
